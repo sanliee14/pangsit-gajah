@@ -1,0 +1,18 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class KasirController extends Controller
+{
+    public function dashboard()
+    {
+        return view('kasir.dashboard');
+    }
+
+    public function transaksi()
+    {
+        return view('kasir.transaksi');
+    }
+}
