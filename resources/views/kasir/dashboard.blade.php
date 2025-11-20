@@ -23,7 +23,7 @@
     </nav>
     </header>
 
-   <nav class="fixed top-1/2 -translate-y-1/2 pl-8">
+    <nav class="fixed top-1/2 -translate-y-1/2 pl-8 md:pl-6 lg:pl-8 z-50 pointer-events-auto">
     <div class="bg-blue-100/70 backdrop-blur-md p-4 px-6 rounded-3xl shadow-lg flex flex-col gap-6 justify-center items-center w-fit">
 
         <a href="{{ url('/kasir/dashboard') }}"
@@ -45,10 +45,13 @@
             class="w-16 h-16 bg-[#3C82F6] rounded-full shadow flex items-center justify-center hover:scale-105 transition">
             <img src="/image/icon3.png" class="w-7">
         </a>
+
+        <a href="{{ url('/kasir/history') }}"
+            class="w-16 h-16 bg-[#3C82F6] rounded-full shadow flex items-center justify-center hover:scale-105 transition">
+            <img src="/image/1.jpeg" class="w-7">
+        </a>
     </div>
 </nav>
-
-
 
     <!-- MENU CONTENT -->
     <main class="flex mt-6 px-8 justify-center gap-8 pb-32"> 
@@ -105,6 +108,18 @@
             });
         });
     </script>
+    <style>
+    .sidebar-space {
+        padding-left: 140px; /* ukuran nav */
+    }
+
+    @media(max-width: 768px){
+        .sidebar-space {
+            padding-left: 110px;
+        }
+    }
+</style>
+
 </body>
 </html>
 
