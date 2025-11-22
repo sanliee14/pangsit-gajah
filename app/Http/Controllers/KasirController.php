@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class KasirController extends Controller
 {
@@ -13,12 +14,8 @@ class KasirController extends Controller
 
     public function dashboardkasir()
     {
-        return view('kasir.dashboard');
-    }
-
-    public function dashboard()
-    {
-        return view('kasir.dashboard');
+        $product = DB::table('product')->get();
+        return view('kasir.dashboard', compact('product'));
     }
 
     public function payment()

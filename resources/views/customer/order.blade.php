@@ -56,17 +56,31 @@
     <!-- Konten Menu -->
     <main class="flex mt-6 px-8 justify-center gap-8 pb-32"> 
         <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 max-w-6xl">
-            @for ($i = 0; $i < 8; $i++)
-            <div class="backdrop-blur-xl bg-white rounded-2xl p-3 shadow hover:shadow-blue-200 hover:scale-105 transition text-center">
-                <img src="{{ asset('image/4.jpeg') }}" class="w-full h-36 object-cover rounded-xl mb-2">
-                <h2 class="font-semibold text-gray-800 text-sm">Mie Pansit</h2>
-                <p class="text-gray-500 text-xs mb-2">Rp25.000</p>
-                <button data-price="25000" class="add-to-cart w-full bg-blue-500 text-white text-sm py-1.5 rounded-lg hover:bg-blue-400 transition">
-                    <i class="fas fa-cart-plus mr-1"></i>Pesan
-                </button>
-            </div>
-            @endfor
-        </section>
+        @foreach ($product as $p)
+        <div class="backdrop-blur-xl bg-white rounded-2xl p-3 shadow hover:shadow-blue-200 hover:scale-105 transition text-center">
+
+        <!-- GAMBAR -->
+        <img src="{{ asset('product/' . $p->Image) }}"
+            class="w-full h-36 object-cover rounded-xl mb-2">
+
+        <!-- NAMA -->
+        <h2 class="font-semibold text-gray-800 text-sm">
+            {{ $p->Nama_Product }}
+        </h2>
+
+        <!-- HARGA -->
+        <p class="text-gray-500 text-xs mb-2">
+            Rp{{ number_format($p->Harga, 0, ',', '.') }}
+        </p>
+
+        <!-- BUTTON -->
+        <button 
+            data-price="{{ $p->Harga }}" 
+            class="add-to-cart w-full bg-blue-500 text-white text-sm py-1.5 rounded-lg hover:bg-blue-400 transition">
+            <i class="fas fa-cart-plus mr-1"></i>Pesan
+        </button>
+    </div>
+    @endforeach
     </main>
 
     <!-- Cart Bar (Full Width) -->

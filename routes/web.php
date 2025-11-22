@@ -28,7 +28,8 @@ Route::middleware(['auth', 'role:kasir'])->group(function () {
 // Customer
 Route::get('/cust/home', [CustomerController::class, 'dashboard'])->name('cust.home');
 Route::get('/customer/data', [CustomerController::class, 'data'])->name('customer.data');
-Route::get('/customer/order', [CustomerController::class, 'order'])->name('customer.order');
+Route::post('/customer/order', [CustomerController::class, 'order'])->name('customer.order');
+Route::post('/customer/order', [CustomerController::class, 'ordermenu'])->name('customer.order');
 Route::get('/customer/fav', [CustomerController::class, 'fav'])->name('customer.fav');
 Route::get('/customer/makanan', [CustomerController::class, 'makanan'])->name('customer.makanan');
 Route::get('/customer/minuman', [CustomerController::class, 'minuman'])->name('customer.minuman');
@@ -52,7 +53,8 @@ Route::get('/kasir/history', [KasirController::class, 'history'])->name('kasir.h
 Route::get('/owner/login', [OwnerController::class, 'login'])->name('owner.login');
 Route::get('/owner/dashboard', [OwnerController::class, 'dashboard'])->name('owner.dashboard');
 Route::get('/owner/product', [OwnerController::class, 'product'])->name('owner.product');
-Route::get('/owner/tambahproduct', [OwnerController::class, 'tambahproduct'])->name('owner.tambahproduct');
+Route::match(['get', 'post'], '/owner/tambahproduct', [OwnerController::class, 'tambahproduct'])->name('owner.tambahproduct');
+
 Route::get('/owner/edit', [OwnerController::class, 'editpesanan'])->name('owner.editpesanan');
 Route::get('/owner/editproduct', [OwnerController::class, 'editproduct'])->name('owner.editproduct');
 Route::get('/owner/transaksi', [OwnerController::class, 'transaksi'])->name('owner.transaksi');

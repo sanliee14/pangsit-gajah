@@ -23,7 +23,15 @@
             Mie Pansit Gajah Siantar
         </h1>
 
-        <form action="{{ url('/customer/order') }}" method="GET" class="space-y-4">
+        @if($errors->has('db'))
+    <div class="bg-red-500 text-white p-2 rounded mb-3">
+        {{ $errors->first('db') }}
+    </div>
+    @endif
+
+
+        <form action="{{ url('/customer/order') }}" method="POST" class="space-y-4">
+            @csrf
             <input type="text" name="nama" placeholder="Nama Anda"
                 class="w-full px-4 py-3 rounded-xl bg-white/30 text-black placeholder-gray focus:outline-none focus:ring-2 focus:ring-blue-300">
             <input type="number" name="meja" placeholder="Nomor Meja"

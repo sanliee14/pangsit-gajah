@@ -3,9 +3,15 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OwnerController extends Controller
 {
+    public function login()
+    {
+        return view('owner.login');
+    }
+
     public function dashboard()
     {
         return view('owner.dashboard');
@@ -13,12 +19,40 @@ class OwnerController extends Controller
 
     public function product()
     {
-        return view('owner.product');
+        // ambil semua produk dari tabel product
+        $product = DB::table('product')->get();
+        return view('owner.product', compact('product'));
     }
 
-    public function tambahproduct()
+    // TAMPIL FORM + SIMPAN PRODUK
+    public function tambahproduct(Request $request)
     {
-        return view('owner.tambahproduct');
+        // Jika GET → tampilkan form
+        if ($request->isMethod('get')) {
+            return view('owner.tambahproduct');
+        }
+
+        // Jika POST → simpan ke database
+        $request->validate([
+            'Nama_Product'    => 'required',
+            'Harga'    => 'required|integer',
+            'kategori' => 'required',
+            'Deskripsi'    => 'required',
+            'Image' => 'required|image|mimes:jpg,jpeg,png|max:2048'
+        ]);
+
+        $imageName = time() . '.' . $request->Image->extension();
+        $request->Image->move(public_path('product'), $imageName);
+
+        DB::table('product')->insert([
+            'Nama_Product' => $request->Nama_Product,
+            'Harga'        => $request->Harga,
+            'kategori'     => $request->kategori,
+            'Deskripsi'    => $request->Deskripsi,
+            'Image'        => $imageName
+        ]);
+
+        return redirect()->route('owner.product')->with('success', 'Produk berhasil ditambahkan!');
     }
 
     public function editpesanan()
@@ -27,10 +61,6 @@ class OwnerController extends Controller
     }
 
     // Proses upload produk (TAPI STATIC, hanya kembali ke halaman)
-    public function upproduct(Request $request)
-    {
-        return redirect()->to('/owner/product');
-    }
 
     // Halaman edit produk
     public function editproduct($id)

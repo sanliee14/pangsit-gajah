@@ -45,56 +45,41 @@
       <!-- Grid Produk (Static) -->
       <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 
-        <!-- Produk 1 -->
-        <div class="bg-white backdrop-blur-xl rounded-2xl shadow-md hover:shadow-blue-200 hover:scale-[1.02] transition p-4 text-center">
-          <img src="{{ asset('image/mie1.png') }}" alt="Produk" class="w-full h-36 object-cover rounded-xl mb-3">
-          <h2 class="font-semibold text-gray-800 text-base">Mie Pangsit Ayam</h2>
-          <p class="text-blue-600 text-sm mb-3">Rp 18.000</p>
+    @foreach ($product as $p)
+    <div class="bg-white backdrop-blur-xl rounded-2xl shadow-md hover:shadow-blue-200 hover:scale-[1.02] transition p-4 text-center">
 
-          <div class="flex justify-center gap-2">
-            <a href="{{ url('/owner/edit-produk') }}" class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded-lg text-sm font-semibold shadow">Edit</a>
-            <a href="#" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold shadow">Hapus</a>
-          </div>
+        <!-- Gambar produk dari public/image -->
+        <img src="{{ asset('product/' . $p->Image) }}"
+          alt="Produk"
+          class="w-full h-36 object-cover rounded-xl mb-3">
+        </img>
+
+        <!-- Nama -->
+        <h2 class="font-semibold text-gray-800 text-base">
+            {{ $p->Nama_Product }}
+        </h2>
+
+        <!-- Harga -->
+        <p class="text-blue-600 text-sm mb-3">
+            Rp {{ number_format($p->Harga, 0, ',', '.') }}
+        </p>
+
+        <!-- Tombol -->
+        <div class="flex justify-center gap-2">
+            <a href="{{ url('/owner/editproduct/' . $p->Id_Product) }}"
+               class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded-lg text-sm font-semibold shadow">
+               Edit
+            </a>
+
+            <a href="{{ url('/owner/deleteproduct/' . $p->Id_Product) }}"
+               class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold shadow"
+               onclick="return confirm('Hapus produk ini?')">
+               Hapus
+            </a>
         </div>
-
-        <!-- Produk 2 -->
-        <div class="bg-white backdrop-blur-xl rounded-2xl shadow-md hover:shadow-blue-200 hover:scale-[1.02] transition p-4 text-center">
-          <img src="{{ asset('image/mie2.png') }}" alt="Produk" class="w-full h-36 object-cover rounded-xl mb-3">
-          <h2 class="font-semibold text-gray-800 text-base">Mie Pangsit Spesial</h2>
-          <p class="text-blue-600 text-sm mb-3">Rp 24.000</p>
-
-          <div class="flex justify-center gap-2">
-            <a href="{{ url('/owner/edit-produk') }}" class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded-lg text-sm font-semibold shadow">Edit</a>
-            <a href="#" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold shadow">Hapus</a>
-          </div>
-        </div>
-
-        <!-- Produk 3 -->
-        <div class="bg-white backdrop-blur-xl rounded-2xl shadow-md hover:shadow-blue-200 hover:scale-[1.02] transition p-4 text-center">
-          <img src="{{ asset('image/mie3.png') }}" alt="Produk" class="w-full h-36 object-cover rounded-xl mb-3">
-          <h2 class="font-semibold text-gray-800 text-base">Es Teh Manis</h2>
-          <p class="text-blue-600 text-sm mb-3">Rp 6.000</p>
-
-          <div class="flex justify-center gap-2">
-            <a href="{{ url('/owner/edit-produk') }}" class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded-lg text-sm font-semibold shadow">Edit</a>
-            <a href="#" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold shadow">Hapus</a>
-          </div>
-        </div>
-
-        <!-- Produk 4 -->
-        <div class="bg-white backdrop-blur-xl rounded-2xl shadow-md hover:shadow-blue-200 hover:scale-[1.02] transition p-4 text-center">
-          <img src="{{ asset('image/mie4.png') }}" alt="Produk" class="w-full h-36 object-cover rounded-xl mb-3">
-          <h2 class="font-semibold text-gray-800 text-base">Milo Dingin</h2>
-          <p class="text-blue-600 text-sm mb-3">Rp 10.000</p>
-
-          <div class="flex justify-center gap-2">
-            <a href="{{ url('/owner/editproduct') }}" class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded-lg text-sm font-semibold shadow">Edit</a>
-            <a href="#" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold shadow">Hapus</a>
-          </div>
-        </div>
-
-      </section>
-
+    </div>
+    @endforeach
+</section>
     </main>
   </div>
 

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Models\Product;
 
 class CustomerController extends Controller
 {
@@ -13,52 +15,79 @@ class CustomerController extends Controller
 
     public function data()
     {
-    return view('customer.data');
+        return view('customer.data');
     }
 
-    public function order()
+    public function ordermenu()
     {
-    return view('customer.order');
-    // Kamu bisa ambil data dari form pakai:
-    // $nama = $request->input('nama');
-    // $meja = $request->input('meja');
+    $product = DB::table('product')->get();
+    return view('customer.order', compact('product'));
+    }
 
-    // lalu kirim ke view order.blade.php
-    // return view('order', compact('nama', 'meja'));
+    public function order(Request $request)
+    {
+    try {
+
+        DB::table('cart')->insert([
+            'Nama'      => $request->nama,
+            'No_Meja'   => $request->meja,
+            'Status'    => 'diproses',
+            'Id_Kasir'  => '1',
+        ]);
+
+        // Jika sukses, langsung ke halaman berikutnya
+        return redirect('/customer/makanan');
+
+    } catch (\Exception $e) {
+        // Ambil pesan error dari MySQL
+        $error = $e->getMessage();
+
+        // Jika pesan mengandung ":" → ambil setelahnya
+        if (str_contains($error, ':')) {
+            $error = explode(':', $error, 2)[1];
+        }
+
+        // Buang sisa tulisan dalam kurung (Connection, SQL, dll)
+        if (str_contains($error, '(')) {
+            $error = explode('(', $error)[0];
+        }
+        $error = str_replace(['<<Unknown error>>:', '<Unknown error>'], '', $error);
+        $error = preg_replace('/\b1644\b/', '', $error);
+        $error = trim($error);
+        return back()->withErrors(['db' => $error]);
+    }
     }
 
     public function fav()
-    {
-    return view('customer.fav');
+    { 
+        $products = DB::table('product')->get();
+        return view('customer.fav', ['products' => $products]);
     }
 
     public function makanan()
     {
-    return view('customer.makanan');
+        $products = DB::table('product')->get();
+        return view('customer.makanan', ['products' => $products]);
     }
 
     public function minuman()
     {
-    return view('customer.minuman');
+        $products = DB::table('product')->get();
+        return view('customer.minuman', ['products' => $products]);
     }
 
     public function checkout() 
     {
-    return view('customer.checkout');
+        return view('customer.checkout');
     }
 
     public function qris() 
     {
-    return view('customer.qris');
+        return view('customer.qris');
     }
 
     public function proses() 
     {
-    return view('customer.proses');
+        return view('customer.proses');
     }
-
-    // public function profile()
-    // {
-    //     return view('customer.profile');
-    // }
 }
