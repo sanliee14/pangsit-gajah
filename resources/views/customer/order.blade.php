@@ -75,9 +75,11 @@
 
         <!-- BUTTON -->
         <button 
-            data-price="{{ $p->Harga }}" 
-            class="add-to-cart w-full bg-blue-500 text-white text-sm py-1.5 rounded-lg hover:bg-blue-400 transition">
-            <i class="fas fa-cart-plus mr-1"></i>Pesan
+        class="add-to-cart w-full bg-blue-500 text-white text-sm py-1.5 rounded-lg hover:bg-blue-400 transition" 
+        data-id="{{ $p->Id_Product }}" 
+        data-name="{{ $p->Nama_Product }}" 
+        data-price="{{ $p->Harga }}"> <i 
+        class="fas fa-cart-plus mr-1"></i>Pesan 
         </button>
     </div>
     @endforeach
@@ -109,19 +111,29 @@
 
     <!-- Script Keranjang -->
     <script>
-        let cartCount = 0;
-        let cartTotal = 0;
+    document.querySelectorAll('.add-to-cart').forEach(btn => {
+    btn.addEventListener('click', () => {
 
-        document.querySelectorAll('.add-to-cart').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const price = parseInt(btn.dataset.price);
-                cartCount++;
-                cartTotal += price;
-
-                document.getElementById('cart-count').innerText = cartCount;
-                document.getElementById('cart-total').innerText = 'Rp' + cartTotal.toLocaleString('id-ID');
-            });
+        fetch("{{ route('customer.cart') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({
+                id: btn.dataset.id,
+                name: btn.dataset.name,
+                price: btn.dataset.price
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('cart-count').innerText = data.count;
+            document.getElementById('cart-total').innerText = 
+                'Rp' + data.total.toLocaleString('id-ID');
         });
-    </script>
+    });
+});
+</script>
 </body>
 </html>

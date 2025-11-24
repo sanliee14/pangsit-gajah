@@ -25,7 +25,25 @@ class KasirController extends Controller
 
     public function accpesanan()
     {
-        return view('kasir.accpesanan');
+    $payments = DB::table('payment')
+            ->whereIn('Status', ['menunggu','diproses'])
+            ->orderBy('Waktu_Bayar', 'desc')
+            ->get();
+
+        // Ambil detail menu per payment
+        $data = [];
+        foreach($payments as $payment) {
+            $details = DB::table('detail_cart')
+                ->where('Id_Payment', $payment->Id_Payment)
+                ->get();
+
+            $data[] = [
+                'payment' => $payment,
+                'details' => $details
+            ];
+        }
+
+        return view('kasir.accpesanan', compact('data'));
     }
 
     public function detailpesanan()

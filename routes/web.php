@@ -28,14 +28,24 @@ Route::middleware(['auth', 'role:kasir'])->group(function () {
 // Customer
 Route::get('/cust/home', [CustomerController::class, 'dashboard'])->name('cust.home');
 Route::get('/customer/data', [CustomerController::class, 'data'])->name('customer.data');
+
 Route::post('/customer/order', [CustomerController::class, 'order'])->name('customer.order');
-Route::post('/customer/order', [CustomerController::class, 'ordermenu'])->name('customer.order');
+Route::get('/customer/ordermenu', [CustomerController::class, 'ordermenu'])->name('customer.ordermenu');
+
+Route::post('/customer/cart', [CustomerController::class, 'cart'])->name('customer.cart'); // FIX
+Route::post('/customer/cartupdate', [CustomerController::class, 'cartupdate'])->name('customer.cartupdate'); // FIX
+
 Route::get('/customer/fav', [CustomerController::class, 'fav'])->name('customer.fav');
 Route::get('/customer/makanan', [CustomerController::class, 'makanan'])->name('customer.makanan');
 Route::get('/customer/minuman', [CustomerController::class, 'minuman'])->name('customer.minuman');
+
 Route::get('/customer/checkout', [CustomerController::class, 'checkout'])->name('customer.checkout');
+Route::get('/customer/datacheckout', [CustomerController::class, 'datacheckout'])->name('customer.datacheckout');
+Route::post('/customer/bayar', [CustomerController::class, 'bayar'])->name('customer.bayar');
+
 Route::get('/customer/qris', [CustomerController::class, 'qris'])->name('customer.qris');
-Route::POST('/customer/proses', [CustomerController::class, 'proses'])->name('customer.proses');
+Route::post('/customer/bukti', [CustomerController::class, 'bukti'])->name('customer.bukti');
+Route::get('/customer/proses', [CustomerController::class, 'proses'])->name('customer.proses');
 
 
 // Kasir

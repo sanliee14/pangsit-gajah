@@ -33,11 +33,11 @@
         <div class="bg-blue-200/80 rounded-2xl p-5 w-full max-w-sm shadow-lg">
             <h3 class="font-bold text-gray-800 mb-2">Upload Bukti Pembayaran</h3>
 
-            <form action="{{ route('customer.proses') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
-                <!-- @csrf -->
-                <!-- <input type="file" name="bukti" accept="image/*" required -->
-                class="w-full p-2 bg-white rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none">
-                
+            <form action="{{ route('customer.bukti') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+                @csrf
+                <input type="file" name="bukti" accept="image/*" required
+                    class="w-full p-2 bg-white rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+
                 <button type="submit"
                         class="w-full bg-blue-500 hover:bg-blue-400 text-white font-semibold py-2 rounded-full transition">
                     Kirim Bukti Pembayaran

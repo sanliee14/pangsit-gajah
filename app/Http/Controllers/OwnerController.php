@@ -14,7 +14,27 @@ class OwnerController extends Controller
 
     public function dashboard()
     {
-        return view('owner.dashboard');
+    $total_hari_ini = DB::table('cart')
+        ->whereDate('created_at', now())
+        ->sum('total');
+
+    $jumlah_pesanan = DB::table('cart')
+        ->whereDate('created_at', now())
+        ->count();
+
+    $total_produk = DB::table('product')->count();
+
+    $transaksi = DB::table('cart')
+        ->orderBy('Id_Cart', 'desc')
+        ->take(5)
+        ->get();
+
+    return view('owner.dashboard', compact(
+        'total_hari_ini',
+        'jumlah_pesanan',
+        'total_produk',
+        'transaksi'
+    ));
     }
 
     public function product()
