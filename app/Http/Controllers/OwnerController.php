@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 
 class OwnerController extends Controller
@@ -12,29 +13,97 @@ class OwnerController extends Controller
         return view('owner.login');
     }
 
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-    $total_hari_ini = DB::table('cart')
-        ->whereDate('created_at', now())
-        ->sum('total');
+    // Ambil tanggal filter dari query
+    $tanggal = $request->input('tanggal', now()->toDateString());
 
-    $jumlah_pesanan = DB::table('cart')
-        ->whereDate('created_at', now())
+    // TOTAL PENJUALAN (status selesai Saja)
+    $total_hari_ini = DB::table('payment')
+        ->whereDate('Waktu_Bayar', $tanggal)
+        ->where('Status', 'selesai')
+        ->sum('Jumlah_Bayar');
+
+    // JUMLAH PESANAN MASUK (yang sudah bayar => bukan menunggu)
+    $jumlah_pesanan = DB::table('payment')
+        ->whereDate('Waktu_Bayar', $tanggal)
+        ->where('Status', '!=', 'menunggu')
         ->count();
 
+    // TOTAL PRODUK (jumlah menu)
     $total_produk = DB::table('product')->count();
 
-    $transaksi = DB::table('cart')
-        ->orderBy('Id_Cart', 'desc')
-        ->take(5)
+    // TRANSAKSI TERBARU sesuai filter tanggal
+    $transaksi = DB::table('payment')
+        ->join('cart', 'payment.Id_Cart', '=', 'cart.Id_Cart')
+        ->select(
+            'payment.Id_Payment',
+            'payment.Id_Cart',
+            'payment.Waktu_Bayar',
+            'payment.Jumlah_Bayar',
+            'payment.Status',
+            'cart.Nama'
+        )
+        ->whereDate('payment.Waktu_Bayar', $tanggal)
+        ->orderBy('payment.Id_Payment', 'desc')
         ->get();
 
     return view('owner.dashboard', compact(
         'total_hari_ini',
         'jumlah_pesanan',
         'total_produk',
-        'transaksi'
+        'transaksi',
+        'tanggal'
     ));
+}
+
+public function editpesanan($id)
+    {
+    // Ambil data utama pesanan
+    $cart = DB::table('cart')
+        ->leftJoin('payment', 'cart.Id_Cart', '=', 'payment.Id_Cart')
+        ->select(
+            'cart.*',
+            'payment.Waktu_Bayar'
+        )
+        ->where('cart.Id_Cart', $id)
+        ->first();
+
+    // Item detail
+    $items = DB::table('detail_cart')
+        ->join('product', 'detail_cart.Id_Product', '=', 'product.Id_Product')
+        ->select(
+            'detail_cart.Id_Detail_Cart',
+            'product.Nama_Product',
+            'product.Harga',
+            'detail_cart.Quantity',
+            DB::raw('product.Harga * detail_cart.Quantity AS Subtotal')
+        )
+        ->where('detail_cart.Id_Cart', $id)
+        ->get();
+
+    // Total
+    $total = $items->sum('Subtotal');
+
+    return view('owner.editpesanan', compact('cart', 'items', 'total'));
+    }
+
+    public function updatepesanan(Request $request, $id)
+    {
+    DB::table('detail_cart')
+        ->where('Id_Detail_Cart', $id)
+        ->update([
+            'Quantity' => $request->quantity
+        ]);
+
+    return back()->with('success', 'Jumlah berhasil diperbarui');
+    }
+
+    public function hapusitem($id)
+    {
+    DB::table('detail_cart')->where('Id_Detail_Cart', $id)->delete();
+
+    return back()->with('success', 'Produk berhasil dihapus');
     }
 
     public function product()
@@ -75,46 +144,241 @@ class OwnerController extends Controller
         return redirect()->route('owner.product')->with('success', 'Produk berhasil ditambahkan!');
     }
 
-    public function editpesanan()
-    {
-        return view('owner.editpesanan');
-    }
+    public function simpanpesanan($id)
+{
+    // Hitung ulang total
+    $items = DB::table('detail_cart')
+        ->join('product', 'detail_cart.Id_Product', '=', 'product.Id_Product')
+        ->where('detail_cart.Id_Cart', $id)
+        ->select(DB::raw('SUM(product.Harga * detail_cart.Quantity) AS total'))
+        ->first();
 
-    // Proses upload produk (TAPI STATIC, hanya kembali ke halaman)
+    // Update cart subtotal
+    DB::table('cart')
+        ->where('Id_Cart', $id)
+        ->update([
+            'Subtotal' => $items->total
+        ]);
 
-    // Halaman edit produk
+    // Update payment jumlah bayar
+    DB::table('payment')
+        ->where('Id_Cart', $id)
+        ->update([
+            'Jumlah_Bayar' => $items->total
+        ]);
+
+    return redirect()->route('owner.dashboard')
+        ->with('success', 'Pesanan berhasil disimpan!');
+}
+
+
+    // public function editpesanan()
+    // {
+    //     return view('owner.editpesanan');
+    // }
+
     public function editproduct($id)
     {
-        return view('owner.editproduct', [
-            'id' => $id
-        ]);
-    }
+    $product = Product::findOrFail($id);
+    return view('owner.editproduct', compact('product'));
+    }   
 
-    // Update produk (fake action)
+    // Update produk
     public function updateProduct(Request $request, $id)
     {
-        return redirect()->to('/owner/product');
+        $request->validate([
+            'Nama_Product' => 'required|string|max:100',
+            'Harga' => 'required|numeric',
+            'Image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        $product = Product::findOrFail($id);
+
+        $product->Nama_Product = $request->Nama_Product;
+        $product->Harga = $request->Harga;
+
+        // Jika ada gambar baru
+        if ($request->hasFile('Image')) {
+            // Hapus gambar lama
+            if (!empty($product->Image) && file_exists(public_path('product/' . $product->Image))) {
+                unlink(public_path('product/' . $product->Image));
+            }
+
+            // Simpan gambar baru
+            $file = $request->file('Image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('product'), $filename);
+            $product->Image = $filename;
+        }
+
+        $product->save();
+
+        return redirect()->route('owner.product')->with('success', 'Produk berhasil diperbarui.');
     }
 
-    // Hapus produk (fake action)
-    public function deleteProduct($id)
+    public function deleteproduct($id)
     {
-        return redirect()->to('/owner/product');
+    $product = Product::find($id);
+
+    if (!$product) {
+        return redirect()->back()->with('error', 'Produk tidak ditemukan.');
     }
 
-    // Transaksi
-    public function transaksi()
-    {
-        return view('owner.transaksi');
+    // Hapus gambar jika ada
+    if (!empty($product->Image) && file_exists(public_path('product/' . $product->Image))) {
+        unlink(public_path('product/' . $product->Image));
     }
+
+    // Hapus data dari database
+    $product->delete();
+
+    return redirect()->route('owner.product')->with('success', 'Produk berhasil dihapus.');
+}
+
+    // ransaksi
+    public function transaksi(Request $request)
+    {
+    $tanggal = $request->tanggal;
+
+    $transaksi = DB::table('cart')
+        ->join('payment', 'cart.Id_Cart', '=', 'payment.Id_Cart')
+        ->select(
+            'cart.Id_Cart',
+            'cart.Nama',
+            'cart.No_Meja',
+            'cart.Status',
+            'payment.Waktu_Bayar',
+            'payment.Jumlah_Bayar'
+        )
+        ->when($tanggal, function ($q) use ($tanggal) {
+            return $q->whereDate('payment.Waktu_Bayar', $tanggal);
+        })
+        ->where('cart.Status', 'selesai')
+        ->orderBy('payment.Waktu_Bayar', 'desc')
+        ->get();
+
+    return view('owner.transaksi', compact('transaksi', 'tanggal'));
+    }
+
+    public function hapustransaksi($id)
+{
+    try {
+        // Hapus detail cart terlebih dahulu
+        DB::table('detail_cart')->where('Id_Cart', $id)->delete();
+
+        // Hapus payment
+        DB::table('payment')->where('Id_Cart', $id)->delete();
+
+        // Hapus cart
+        DB::table('cart')->where('Id_Cart', $id)->delete();
+
+        return redirect()->back()->with('success', 'Transaksi berhasil dihapus!');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Gagal menghapus transaksi: ' . $e->getMessage());
+    }
+}
 
     // Laporan (static juga)
     public function laporan()
     {
-        // data graph static
-        $labels = ['2025-01-01', '2025-01-02', '2025-01-03'];
-        $totals = [120000, 180000, 90000];
+        $tanggalHariIni = date('Y-m-d');
 
-        return view('owner.laporan', compact('labels', 'totals'));
-    }
+    // 1. Laporan harian (semua tanggal)
+    $laporanHarian = DB::table('payment')
+        ->where('Status', 'selesai')
+        ->selectRaw('DATE(Waktu_Bayar) as tanggal, COUNT(Id_Payment) as jumlah_transaksi, SUM(Jumlah_Bayar) as total_penjualan')
+        ->groupBy('tanggal')
+        ->orderBy('tanggal', 'asc')
+        ->get();
+
+    // 2. Data chart (7 hari terakhir)
+    $laporan7Hari = DB::table('payment')
+        ->where('Status', 'selesai')
+        ->whereDate('Waktu_Bayar', '>=', date('Y-m-d', strtotime('-6 days')))
+        ->selectRaw('DATE(Waktu_Bayar) as tanggal, SUM(Jumlah_Bayar) as total')
+        ->groupBy('tanggal')
+        ->orderBy('tanggal')
+        ->get();
+
+    $labels = $laporan7Hari->pluck('tanggal');
+    $totals = $laporan7Hari->pluck('total');
+
+    // 3. Produk terlaris hari ini (3 produk)
+    $produkTerlarisHariIni = DB::table('detail_cart as dc')
+        ->join('cart as c', 'dc.Id_Cart', '=', 'c.Id_Cart')
+        ->join('payment as p', 'c.Id_Cart', '=', 'p.Id_Cart')
+        ->join('product as pr', 'dc.Id_Product', '=', 'pr.Id_Product')
+        ->where('p.Status', 'selesai')
+        ->whereDate('p.Waktu_Bayar', $tanggalHariIni)
+        ->select('pr.Nama_Product', DB::raw('SUM(dc.Quantity) as jumlah_terjual'))
+        ->groupBy('pr.Id_Product', 'pr.Nama_Product')
+        ->orderByDesc('jumlah_terjual')
+        ->limit(3)
+        ->get();
+
+    return view('owner.laporan', compact(
+        'laporanHarian', 
+        'labels', 
+        'totals', 
+        'produkTerlarisHariIni',
+        'tanggalHariIni'
+    ));
 }
+
+    public function edit($id)
+    {
+    return view('owner.edit', ['id' => $id]);
+    }
+
+    public function addorder($id)
+    {
+    $product = Product::orderBy('Nama_Product')->get();
+
+    return view('owner.addorder', [
+        'product' => $product,
+        'IdCart' => $id
+    ]);
+    }
+
+    public function index($IdCart)
+    {
+    $product = Product::orderBy('Nama_Product')->get();
+
+    return view('owner.addorder', [
+        'product' => $product,
+        'IdCart' => $IdCart
+    ]);
+    }
+
+    // Simpan product ke pesanan
+    public function menu(Request $request, $IdCart)
+    {
+    $data = $request->cartItems;
+
+    // Jika datanya berupa JSON string, decode
+    if (is_string($data)) {
+        $data = json_decode($data, true);
+    }
+
+    // Validasi
+    if (!is_array($data)) {
+        return back()->with('error', 'Format data cartItems tidak valid!');
+    }
+
+    foreach ($data as $item) {
+        if (!isset($item['id']) || !isset($item['quantity'])) continue;
+
+    DB::table('detail_cart')->insert([
+    'Id_Cart' => $IdCart,
+    'Id_Product' => $item['id'],
+    'Quantity' => $item['quantity'],
+    // 'Harga' => $item['price'] ?? 0,
+    // 'Subtotal' => ($item['price'] ?? 0) * $item['quantity'],
+    ]);
+    }
+
+    return redirect()->route('owner.editpesanan', $IdCart)
+        ->with('success', 'Produk berhasil ditambahkan.');
+}
+}
+

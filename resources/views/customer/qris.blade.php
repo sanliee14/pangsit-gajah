@@ -6,14 +6,21 @@
     <title>Pembayaran QRIS | Mie Pansit Gajah Siantar</title>
     @vite('resources/css/app.css')
 </head>
-<body class="bg-blue-100 font-sans text-gray-800 min-h-screen flex flex-col">
+<body class="bg-blue-200 font-sans text-gray-800 min-h-screen flex flex-col">
 
     <!-- Header -->
-    <header class="bg-blue-500 text-white py-4 px-6 shadow-md">
+    <header class="bg-blue-500 text-white py-4 px-6 shadow-md flex items-center gap-4">
+    <div class="w-12 h-12 rounded-full overflow-hidden ring-2 ring-white/70 shadow">
+        <img src="{{ asset('image/fix.png') }}" 
+            alt="Logo" 
+            class="w-full h-full object-cover">
+    </div>
+    <div>
         <h1 class="text-lg font-bold">Pembayaran QRIS</h1>
         <p class="text-sm">Silakan lakukan pembayaran sesuai total pesanan Anda</p>
-    </header>
-
+</div>
+</nav>
+</header>
     <!-- Konten Utama -->
     <main class="flex-1 flex flex-col items-center justify-center px-6 py-8 space-y-6">
 

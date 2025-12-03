@@ -23,19 +23,20 @@
         </h1>
 
         <!-- form username & passowrd -->
-        <form action="{{ route('kasir.dashboard') }}" method="GET" class="space-y-4">
-            
-            <input type="text" name="username" placeholder="Username"
-                class="w-full px-4 py-3 rounded-xl bg-white/30 text-black placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
-            
-            <input type="password" name="password" placeholder="Password"
-                class="w-full px-4 py-3 rounded-xl bg-white/30 text-black placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+        <form action="{{ route('kasir.login') }}" method="POST" class="space-y-4">
+    @csrf
+    <input type="text" name="username" placeholder="Username"
+        class="w-full px-4 py-3 rounded-xl bg-white/30 text-black placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
 
-            <button type="submit"
-                class="w-full mt-2 bg-blue-500 hover:bg-blue-400 text-white font-semibold py-3 rounded-full shadow-lg transition-all duration-300 hover:scale-105">
-                LOGIN
-            </button>
-        </form>
+    <input type="password" name="password" placeholder="Password"
+        class="w-full px-4 py-3 rounded-xl bg-white/30 text-black placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+
+    <button type="submit"
+        class="w-full mt-2 bg-blue-500 hover:bg-blue-400 text-white font-semibold py-3 rounded-full shadow-lg transition-all duration-300 hover:scale-105">
+        LOGIN
+    </button>
+</form>
+
 
         <!-- lupa pass -->
         <p class="text-sm text-gray-700 mt-4">

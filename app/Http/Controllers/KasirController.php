@@ -12,6 +12,28 @@ class KasirController extends Controller
         return view('kasir.login');
     }
 
+    public function proseslogin(Request $request)
+    {
+        $request->validate([
+        'username' => 'required',
+        'password' => 'required'
+    ]);
+
+    // cek kombinasi username, password, dan role kasir
+    $credentials = [
+        'Username' => $request->username,
+        'Password' => $request->password,
+        'Role' => 'kasir'
+    ];
+
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
+        return redirect()->route('kasir.dashboard');
+    }
+
+    return back()->with('error', 'Username atau password salah!');
+    }
+
     public function dashboardkasir()
     {
         $product = DB::table('product')->get();
@@ -23,47 +45,256 @@ class KasirController extends Controller
         return view('kasir.payment');
     }
 
-    public function accpesanan()
+    public function showtambahproduct()
     {
-    $payments = DB::table('payment')
-            ->whereIn('Status', ['menunggu','diproses'])
-            ->orderBy('Waktu_Bayar', 'desc')
-            ->get();
-
-        // Ambil detail menu per payment
-        $data = [];
-        foreach($payments as $payment) {
-            $details = DB::table('detail_cart')
-                ->where('Id_Payment', $payment->Id_Payment)
-                ->get();
-
-            $data[] = [
-                'payment' => $payment,
-                'details' => $details
-            ];
-        }
-
-        return view('kasir.accpesanan', compact('data'));
+        return view('kasir.tambahproduct');
     }
 
-    public function detailpesanan()
+    public function dashboard(Request $request)
+{
+    // FILTER TANGGAL JIKA ADA
+    $tanggal = $request->input('tanggal', today()->toDateString());
+
+    // 1. TOTAL PENJUALAN (status selesai)
+    $total_hari_ini = DB::table('payment')
+        ->whereDate('Waktu_Bayar', $tanggal)
+        ->where('Status', 'selesai')
+        ->sum('Jumlah_Bayar');
+
+    // 2. JUMLAH PESANAN (yang sudah bayar = tidak menunggu)
+    $jumlah_pesanan = DB::table('payment')
+        ->whereDate('Waktu_Bayar', $tanggal)
+        ->where('Status', '!=', 'menunggu')
+        ->count();
+
+    // 3. TOTAL PRODUK (jumlah menu)
+    $total_produk = DB::table('product')->count();
+
+    // 4. TRANSAKSI TERBARU
+    $transaksi = DB::table('payment')
+        ->join('cart', 'payment.Id_Cart', '=', 'cart.Id_Cart')
+        ->select(
+            'payment.Id_Payment',
+            'payment.Id_Cart',
+            'payment.Waktu_Bayar',
+            'payment.Jumlah_Bayar',
+            'payment.Status',
+            'cart.Nama'
+        )
+        ->whereDate('payment.Waktu_Bayar', $tanggal)
+        ->orderBy('payment.Id_Payment', 'desc')
+        ->take(5)
+        ->get();
+
+    return view('owner.dashboard', compact(
+        'total_hari_ini',
+        'jumlah_pesanan',
+        'total_produk',
+        'transaksi',
+        'tanggal'
+    ));
+    }
+
+    public function accpesanan()
     {
-        return view('kasir.detailpesanan');
+    $order = DB::table('cart')
+            ->join('payment', 'cart.Id_Cart', '=', 'payment.Id_Cart')
+            ->select(
+                'cart.Id_Cart',
+                'cart.Nama',
+                'cart.No_Meja',
+                'payment.Jumlah_Bayar',
+                'payment.Status'
+            )
+            ->where('payment.Status', 'Menunggu')
+            ->orderBy('cart.Id_Cart', 'desc')
+            ->get();
+
+        return view('kasir.accpesanan', compact('order'));
+    }
+
+    public function detailpesanan($id)
+    {
+        $cart = DB::table('cart')
+        ->join('payment', 'cart.Id_Cart', '=', 'payment.Id_Cart')
+        ->select(
+            'cart.Id_Cart',
+            'cart.Nama',
+            'cart.No_Meja',
+            'payment.Catatan',
+            'payment.Jumlah_Bayar as Total_Harga',
+            'payment.Metode',
+            'payment.Waktu_Bayar as Waktu_Cart'
+        )
+        ->where('cart.Id_Cart', $id)
+        ->first();
+
+    if (!$cart) {
+        return redirect()->route('kasir.prosespesanan')->with('error', 'Pesanan tidak ditemukan.');
+    }
+
+    // Ambil detail menu dari detail_cart
+    $detail = DB::table('detail_cart')
+        ->join('product', 'detail_cart.Id_Product', '=', 'product.Id_Product')
+        ->select(
+            'product.Nama_Product',
+            'product.Harga',
+            'product.Image',
+            'detail_cart.Quantity as Qty'
+        )
+        ->where('detail_cart.Id_Cart', $id)
+        ->get();
+
+    return view('kasir.detailpesanan', compact('cart', 'detail'));
     }
 
     public function prosespesanan()
     {
-        return view('kasir.prosespesanan');
+    // Ambil semua pesanan yang sedang diproses
+    $order = DB::table('cart')
+        ->join('payment', 'cart.Id_Cart', '=', 'payment.Id_Cart')
+        ->select(
+            'cart.Id_Cart',
+            'cart.Nama',
+            'cart.No_Meja',
+            'payment.Jumlah_Bayar',
+            'payment.Status'
+        )
+        ->where('payment.Status', 'diproses') 
+        ->orderBy('cart.Id_Cart', 'desc')
+        ->get();
+
+    return view('kasir.prosespesanan', compact('order'));
     }
 
-    public function detailproses()
+    public function terimapesanan($id)
     {
-        return view('kasir.detailproses');
+    DB::table('payment')
+        ->where('Id_Cart', $id)
+        ->update([
+            'Status' => 'diproses'
+        ]);
+
+    return redirect()->route('kasir.prosespesanan');
     }
 
-    public function history()
+    public function detailproses($id)
     {
-        return view('kasir.history');
+    // Ambil data cart + payment
+    $cart = DB::table('cart')
+        ->join('payment', 'cart.Id_Cart', '=', 'payment.Id_Cart')
+        ->select(
+            'cart.Id_Cart',
+            'cart.Nama',
+            'cart.No_Meja',
+            'payment.Catatan',
+            'payment.Jumlah_Bayar as Total_Harga',
+            'payment.Metode',
+            'payment.Waktu_Bayar',
+            'payment.Status'
+        )
+        ->where('cart.Id_Cart', $id)
+        ->first();
+
+    if (!$cart) {
+        return redirect()->route('kasir.prosespesanan')
+        ->with('error', 'Pesanan tidak ditemukan.');
+    }
+
+    // Ambil detail menu
+    $detail = DB::table('detail_cart')
+        ->join('product', 'detail_cart.Id_Product', '=', 'product.Id_Product')
+        ->select(
+            'product.Nama_Product',
+            'product.Harga',
+            'product.Image',
+            'detail_cart.Quantity as Qty'
+        )
+        ->where('detail_cart.Id_Cart', $id)
+        ->get();
+
+    return view('kasir.detailproses', compact('cart', 'detail'));
+    }
+
+    public function selesai($id)
+    {
+    // Update status cart
+    DB::table('cart')
+        ->where('Id_Cart', $id)
+        ->update([
+            'Status' => 'selesai',
+        ]);
+
+    // Update payment jika mau
+    DB::table('payment')
+        ->where('Id_Cart', $id)
+        ->update([
+            'Status' => 'selesai'
+        ]);
+
+    return redirect()->route('kasir.prosespesanan')->with('success', 'Pesanan telah selesai.');
+    }
+
+    public function history(Request $request)
+{
+    $tanggal = $request->tanggal;
+
+    $order = DB::table('cart')
+        ->join('payment', 'cart.Id_Cart', '=', 'payment.Id_Cart')
+        ->select(
+            'cart.Id_Cart',
+            'cart.Nama',
+            'cart.No_Meja',
+            'cart.Status',
+            'payment.Jumlah_Bayar',
+            'payment.Waktu_Bayar'
+        )
+        ->where('cart.Status', 'selesai')
+        ->when($tanggal, function ($q) use ($tanggal) {
+            return $q->whereDate('payment.Waktu_Bayar', $tanggal);
+        })
+        ->orderBy('payment.Waktu_Bayar', 'desc')
+        ->get();
+
+    return view('kasir.history', compact('order'));
+}
+
+
+    public function detailhistory($id)
+    {
+    // Ambil info utama cart + payment
+    $cart = DB::table('cart')
+        ->join('payment', 'cart.Id_Cart', '=', 'payment.Id_Cart')
+        ->select(
+            'cart.Id_Cart',
+            'cart.Nama',
+            'cart.No_Meja',
+            'payment.Catatan',
+            'cart.Status',
+            'payment.Jumlah_Bayar',
+            'payment.Metode',
+            'payment.Waktu_Bayar'
+        )
+        ->where('cart.Id_Cart', $id)
+        ->first();
+
+    if (!$cart) {
+        return redirect()->route('kasir.history')->with('error', 'Data tidak ditemukan.');
+    }
+
+    // Ambil detail menu yang dipesan
+    $detail = DB::table('detail_cart')
+        ->join('product', 'detail_cart.Id_Product', '=', 'product.Id_Product')
+        ->select(
+            'product.Nama_Product',
+            'product.Harga',
+            'product.Image',
+            'detail_cart.Quantity as Qty'
+        )
+        ->where('detail_cart.Id_Cart', $id)
+        ->get();
+
+    return view('kasir.detailhistory', compact('cart', 'detail'));
     }
 
     public function transaksi()

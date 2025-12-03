@@ -18,10 +18,10 @@ class CustomerController extends Controller
         return view('customer.data');
     }
 
-    public function ordermenu()
+    public function menu()
     {
     $product = DB::table('product')->get();
-    return view('customer.order', compact('product'));
+    return view('customer.menu', compact('product'));
     }
 
     public function order(Request $request)
@@ -40,7 +40,7 @@ class CustomerController extends Controller
         ]);
 
         // Jika sukses, langsung ke halaman berikutnya
-        return redirect('/customer/order');
+        return redirect('/customer/menu');
 
     } catch (\Exception $e) {
         // Ambil pesan error dari MySQL
@@ -168,8 +168,23 @@ class CustomerController extends Controller
     ]);
     }
 
-    public function bayar(Request $request)
+    public function datacheckout(Request $request)
 {
+    $request->validate([
+        'nama' => 'required',
+        'meja' => 'required',
+    ]);
+
+    session([
+        'nama_customer' => $request->nama,
+        'no_meja' => $request->meja,
+    ]);
+
+    return redirect()->route('customer.checkout');
+}
+
+    public function bayar(Request $request)
+    {
     $payment = $request->payment_method; // cash, qris, dll
     $cart    = session()->get('cart', []);
     $total   = $request->total;
@@ -178,19 +193,37 @@ class CustomerController extends Controller
         return redirect()->back()->with('error', 'Keranjang kosong.');
     }
 
-    // Simpan ke tabel payment
-    $paymentId = DB::table('payment')->insertGetId([
-        'Metode'           => $payment,
-        'Waktu_Bayar'      => now(),
-        'Jumlah_Bayar'     => $total,
-        'Status'           => 'menunggu',
+    // Simpan ke tabel cart terlebih dahulu untuk dapat Id_Cart (nomor pesanan)
+    $idCart = DB::table('cart')->insertGetId([
+        'Nama'      => $request->nama ?? session('nama_customer'),
+        'No_Meja'   => $request->meja ?? session('no_meja'),
+        'Status'    => 'diproses',
+        'Id_Kasir'  => 1,
+    ]);
+
+    foreach ($cart as $item) {
+        DB::table('detail_cart')->insert([
+            'Id_Cart'    => $idCart,
+            'Id_Product' => $item['product_id'],
+            'Quantity'   => $item['qty'],
+        ]);
+    }
+
+    // Simpan ke tabel payment pakai Id_Cart
+    DB::table('payment')->insert([
+        'Id_Cart'         => $idCart,        // ganti Id_Payment -> Id_Cart
+        'Metode'          => $payment,
+        'Waktu_Bayar'     => now(),
+        'Jumlah_Bayar'    => $total,
+        'Status'          => 'Menunggu',
+        'Catatan'         => null,
         'Bukti_Pembayaran' => null,
     ]);
 
-    // Simpan cart & Id_Payment ke session supaya proses() bisa menampilkan data
+    // Simpan cart & Id_Cart ke session supaya proses() bisa menampilkan data
     session([
         'last_payment_cart' => $cart,
-        'last_payment_id'   => $paymentId,
+        'last_payment_id'   => $idCart,  // sekarang pakai Id_Cart
     ]);
 
     // Kosongkan cart
@@ -202,12 +235,13 @@ class CustomerController extends Controller
     }
 
     return redirect()->route('customer.qris')->with('success', 'Silahkan lanjutkan pembayaran QRIS.');
-}
+    }
 
     public function proses() 
     {
     $cart = session('last_payment_cart', []);
-    $payment = DB::table('payment')->where('Id_Payment', session('last_payment_id'))->first();
+    // gunakan Id_Cart untuk query payment
+    $payment = DB::table('payment')->where('Id_Cart', session('last_payment_id'))->first();
     $nama = session('nama_customer', 'Customer');
     $meja = session('no_meja', '-');
 
@@ -216,11 +250,6 @@ class CustomerController extends Controller
     }
 
     return view('customer.proses', compact('cart', 'payment', 'nama', 'meja'));
-    }
-
-    public function qris()
-    {
-        return view('customer.qris');
     }
 
     public function bukti(Request $request)
@@ -233,14 +262,18 @@ class CustomerController extends Controller
     $filename = time().'_'.$file->getClientOriginalName();
     $file->move(public_path('bukti'), $filename);
 
-    // Simpan ke tabel payment sesuai customer / pesanan
-    DB::table('payment')->where('Metode', 'qris')->update([
+    // Simpan ke tabel payment sesuai Id_Cart terakhir
+    DB::table('payment')->where('Id_Cart', session('last_payment_id'))->update([
         'Bukti_Pembayaran' => $filename,
-        'Status' => 'menunggu'
+        'Status'           => 'menunggu'
     ]);
 
     // Redirect ke halaman proses
     return redirect()->route('customer.proses')->with('success', 'Bukti pembayaran berhasil dikirim.');
     }
 
+    public function qris()
+    {
+        return view('customer.qris');
+    }
 }

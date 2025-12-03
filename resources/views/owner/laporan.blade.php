@@ -36,9 +36,22 @@
 
     <!-- Konten Laporan -->
     <main class="flex-1 p-8">
-      <h2 class="text-3xl font-extrabold bg-gradient-to-r from-blue-600 to-blue-400 text-transparent bg-clip-text mb-8">
-        Laporan Penjualan Harian
-      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+
+    @forelse($produkTerlarisHariIni as $produk)
+    <div class="bg-white rounded-3xl shadow-md p-6 text-center hover:shadow-blue-300/40 transition">
+        <h3 class="text-lg font-semibold text-gray-600"> {{ $produk->Nama_Product }} </h3>
+        <p class="text-3xl font-bold text-blue-600 mt-2">
+            {{ $produk->jumlah_terjual }}
+        </p>
+    </div>
+    @empty
+    <div class="col-span-1 md:col-span-3 bg-white rounded-3xl shadow-md p-6 text-center text-gray-500">
+        Belum ada transaksi hari ini
+    </div>
+    @endforelse
+
+</div>
 
       <!-- Grafik -->
       <div class="bg-white p-6 rounded-3xl shadow-lg border border-blue-100 mb-10">
@@ -46,7 +59,9 @@
         <canvas id="chartPenjualan" height="120"></canvas>
       </div>
 
+      
       <!-- Tabel Laporan -->
+      
       <div class="overflow-x-auto bg-white rounded-3xl shadow-lg border border-blue-100">
         <table class="min-w-full rounded-lg">
           <thead class="bg-blue-500 text-white">
@@ -57,13 +72,15 @@
             </tr>
           </thead>
           <tbody>
-            
-              <tr class="border-b hover:bg-blue-50">
-                <td class="py-3 px-4">tanggal</td>
-                <td class="py-3 px-4">jumlah transaksi</td>
-                <td class="py-3 px-4 text-blue-600 font-bold">Rp </td>
-              </tr>
-          </tbody>
+    @foreach($laporanHarian as $lap)
+    <tr class="border-b hover:bg-blue-50">
+        <td class="py-3 px-4">{{ $lap->tanggal }}</td>
+        <td class="py-3 px-4 text-center">{{ $lap->jumlah_transaksi }}</td>
+        <td class="py-3 px-4 text-blue-600 font-bold">Rp {{ number_format($lap->total_penjualan, 0, ',', '.') }}</td>
+    </tr>
+    @endforeach
+</tbody>
+
         </table>
       </div>
     </main>

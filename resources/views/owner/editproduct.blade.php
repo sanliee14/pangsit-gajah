@@ -55,49 +55,40 @@
         </div>
 
         <!-- Form Edit -->
-        <div class="space-y-4">
+        <form action="{{ route('owner.updateproduct', $product->Id_Product) }}" method="POST" enctype="multipart/form-data">
+    @csrf
 
-          <div>
-            <label class="font-semibold text-gray-700">Nama Produk</label>
-            <input type="text" value="Contoh Produk"
-              class="w-full mt-2 p-3 rounded-xl border border-blue-200 focus:ring focus:ring-blue-300 outline-none">
-          </div>
+    <div>
+        <label class="font-semibold text-gray-700">Nama Produk</label>
+        <input type="text" name="Nama_Product" value="{{ $product->Nama_Product }}"
+               class="w-full mt-2 p-3 rounded-xl border border-blue-200 focus:ring focus:ring-blue-300 outline-none">
+    </div>
 
-          <div>
-            <label class="font-semibold text-gray-700">Harga Produk</label>
-            <input type="number" value="15000"
-              class="w-full mt-2 p-3 rounded-xl border border-blue-200 focus:ring focus:ring-blue-300 outline-none">
-          </div>
+    <div>
+        <label class="font-semibold text-gray-700">Harga Produk</label>
+        <input type="number" name="Harga" value="{{ $product->Harga }}"
+               class="w-full mt-2 p-3 rounded-xl border border-blue-200 focus:ring focus:ring-blue-300 outline-none">
+    </div>
 
-          <div>
-            <label class="font-semibold text-gray-700">Ganti Gambar (Opsional)</label>
-            <input type="file"
-              class="w-full mt-2 p-3 rounded-xl border border-blue-200 bg-white focus:ring focus:ring-blue-300 outline-none">
-          </div>
+    <div>
+        <label class="font-semibold text-gray-700">Ganti Gambar (Opsional)</label>
+        <input type="file" name="Image"
+               class="w-full mt-2 p-3 rounded-xl border border-blue-200 bg-white focus:ring focus:ring-blue-300 outline-none">
+    </div>
 
-        </div>
+    <div class="flex justify-between mt-8">
+        <a href="{{ url('/owner/produk') }}"
+           class="bg-gray-400 text-white px-5 py-2 rounded-xl shadow hover:bg-gray-500 transition">
+           Kembali
+        </a>
 
-        <!-- Tombol Aksi -->
-        <div class="flex justify-between mt-8">
+        <button type="submit"
+                class="bg-yellow-400 text-white px-5 py-2 rounded-xl shadow hover:bg-yellow-500 transition">
+            Simpan Perubahan
+        </button>
+    </div>
+</form>
 
-          <a href="{{ url('/owner/produk') }}"
-            class="bg-gray-400 text-white px-5 py-2 rounded-xl shadow hover:bg-gray-500 transition">
-            Kembali
-          </a>
-
-          <div class="flex gap-3">
-            <button class="bg-yellow-400 text-white px-5 py-2 rounded-xl shadow hover:bg-yellow-500 transition">
-              Simpan Perubahan
-            </button>
-
-            <button class="bg-red-500 text-white px-5 py-2 rounded-xl shadow hover:bg-red-600 transition">
-              Hapus Produk
-            </button>
-          </div>
-
-        </div>
-
-      </div>
     </main>
   </div>
 

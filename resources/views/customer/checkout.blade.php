@@ -7,21 +7,30 @@
     @vite('resources/css/app.css')
 </head>
 
-<body class="bg-blue-100 font-sans text-gray-800 min-h-screen flex flex-col">
+<body class="bg-blue-200 font-sans text-gray-800 min-h-screen flex flex-col">
 
-    <!-- Header -->
-    <header class="bg-blue-500 text-white py-4 px-6 shadow-md">
+<header class="bg-blue-500 text-white py-4 px-6 shadow-md flex items-center gap-4">
+    <div class="w-12 h-12 rounded-full overflow-hidden ring-2 ring-white/70 shadow">
+        <img src="{{ asset('image/fix.png') }}" 
+            alt="Logo" 
+            class="w-full h-full object-cover">
+    </div>
+    <div>
         <h1 class="text-lg font-bold">Pesanan Anda</h1>
         <p class="text-sm">{{ $nama }} | Nomor Meja : {{ $meja }}</p>
-    </header>
+    </div>
+
+</header>
+
 
     <!-- Konten Pesanan -->
     <main class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
 
         @foreach ($cart as $c)
-        <div class="bg-blue-200 rounded-2xl p-4 relative" id="item-{{ $c['product_id'] }}">
-            <a href="{{ route('customer.ordermenu') }}"
-               class="absolute top-3 right-4 text-sm font-semibold text-blue-800 hover:text-blue-600">
+        <nav class="bg-white rounded-2xl p-4 relative" id="item-{{ $c['product_id'] }}">
+        <div>
+            <a href="{{ route('customer.menu') }}"
+            class="absolute top-3 right-4 text-sm font-semibold text-blue-800 hover:text-blue-600">
                 Tambah Pesanan
             </a>
 
@@ -51,17 +60,18 @@
                 </div>
             </div>
         </div>
+        </nav>
         @endforeach
 
         <!-- Catatan -->
-        <div class="bg-blue-200 rounded-2xl p-4">
+        <div class="bg-white rounded-2xl p-4">
             <label class="block text-sm font-semibold mb-1">Catatan Tambahan</label>
-            <textarea id="catatan" class="w-full rounded-lg p-2 text-sm border-none focus:ring-2 focus:ring-blue-400" 
+            <textarea id="catatan" class="w-full bg-blue-100 rounded-lg p-2 text-sm border-none focus:ring-2 focus:ring-blue-400" 
                 rows="2" placeholder="Contoh: tanpa sambal, bungkus terpisah..."></textarea>
         </div>
 
         <!-- Pembayaran -->
-        <div class="bg-blue-200 rounded-2xl p-4 flex justify-between items-center font-semibold">
+        <div class="bg-white rounded-2xl p-4 flex justify-between items-center font-semibold">
             <span>Pilihan Pembayaran</span>
             <select id="payment-method" class="bg-transparent font-semibold text-right focus:outline-none">
                 <option value="cash">Cash</option>

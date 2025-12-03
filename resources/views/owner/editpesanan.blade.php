@@ -27,13 +27,14 @@
   <div class="flex">
 
     <!-- SIDEBAR -->
-    <aside class="w-64 bg-blue-400 text-white p-6 min-h-screen shadow-lg">
-      <h2 class="text-lg font-bold mb-6 uppercase">Menu Owner</h2>
+    <aside class="w-64 bg-blue-400 text-white min-h-screen p-6 shadow-xl">
+      <h2 class="text-lg font-bold mb-6 text-white/90 uppercase tracking-wide">Menu Owner</h2>
       <ul class="space-y-4">
-        <li><a href="{{ url('/owner/dashboard') }}" class="block py-2 px-3 rounded-full hover:bg-blue-300">Dashboard</a></li>
-        <li><a href="{{ url('/owner/transaksi') }}" class="block py-2 px-3 rounded-full hover:bg-blue-300">Transaksi</a></li>
-        <li><a href="{{ url('/owner/produk') }}" class="block py-2 px-3 rounded-full hover:bg-blue-300">Produk</a></li>
-        <li><a href="{{ url('/owner/laporan') }}" class="block py-2 px-3 rounded-full hover:bg-blue-300">Laporan</a></li>
+        <li><a href="{{ route('owner.dashboard') }}" class="block bg-blue-500 py-2 px-3 rounded-full font-semibold text-center shadow hover:bg-blue-600 transition"> Dashboard</a></li>
+        <li><a href="{{ route('owner.transaksi') }}" class="block py-2 px-3 rounded-full hover:bg-blue-300 hover:text-blue-900 transition"> Data Transaksi</a></li>
+        <li><a href="{{ route('owner.product') }}" class="block py-2 px-3 rounded-full hover:bg-blue-300 hover:text-blue-900 transition"> Product & Harga</a></li>
+        <li><a href="{{ route('owner.laporan') }}" class="block py-2 px-3 rounded-full hover:bg-blue-300 hover:text-blue-900 transition"> Laporan Harian</a></li>
+        <li><a href="{{ route('owner.tambahproduct') }}" class="block py-2 px-3 rounded-full hover:bg-blue-300 hover:text-blue-900 transition"> Tambah Produk</a></li>
       </ul>
     </aside>
 
@@ -49,25 +50,32 @@
         <h3 class="text-xl font-semibold mb-3">Informasi Pesanan</h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
           <div>
             <label class="font-medium">ID Pesanan</label>
-            <input type="text" class="w-full p-2 rounded border" value="TRX001">
+            <input type="text" class="w-full p-2 rounded border bg-gray-100"
+              value="#{{ $cart->Id_Cart }}" disabled>
           </div>
 
           <div>
             <label class="font-medium">Nama Customer</label>
-            <input type="text" class="w-full p-2 rounded border" value="Qiara">
+            <input type="text" class="w-full p-2 rounded border bg-gray-100"
+              value="{{ $cart->Nama }}" disabled>
           </div>
 
           <div>
-            <label class="font-medium">Tanggal Pesan</label>
-            <input type="date" class="w-full p-2 rounded border" value="2025-11-15">
-          </div>
+  <label class="font-medium">Tanggal Pesan</label>
+  <input type="date" class="w-full p-2 rounded border bg-gray-100"
+         value="{{ $cart->Waktu_Bayar ? date('Y-m-d', strtotime($cart->Waktu_Bayar)) : '' }}" disabled>
+</div>
 
-          <div>
-            <label class="font-medium">Waktu Update Terakhir</label>
-            <input type="text" class="w-full p-2 rounded border" value="15 Nov 2025 • 14:32" disabled>
-          </div>
+<div>
+  <label class="font-medium">Waktu Update Terakhir</label>
+  <input type="text" class="w-full p-2 rounded border bg-gray-100"
+         value="{{ $cart->Waktu_Bayar ? date('d M Y • H:i', strtotime($cart->Waktu_Bayar)) : '' }}" disabled>
+</div>
+
+
         </div>
       </div>
 
@@ -87,64 +95,95 @@
           </thead>
 
           <tbody>
+            @foreach ($items as $item)
             <tr class="border-t">
-              <td class="p-3">Mie Pansit Ayam</td>
-              <td class="p-3 text-center">
-                <input type="number" min="1" value="2" class="w-16 p-1 border rounded text-center">
-              </td>
-              <td class="p-3 text-right">Rp20.000</td>
-              <td class="p-3 text-right">Rp40.000</td>
-              <td class="p-3 text-center">
-                <button class="bg-red-500 px-3 py-1 text-white rounded hover:bg-red-600">Hapus</button>
-              </td>
-            </tr>
 
-            <tr class="border-t">
-              <td class="p-3">Es Teh Manis</td>
+              <td class="p-3">{{ $item->Nama_Product }}</td>
+
               <td class="p-3 text-center">
-                <input type="number" min="1" value="1" class="w-16 p-1 border rounded text-center">
+                <form action="{{ route('owner.updatepesanan', $item->Id_Detail_Cart) }}" method="POST">
+                  @csrf
+                  <input type="number" min="1" name="quantity"
+                    value="{{ $item->Quantity }}"
+                    class="w-16 p-1 border rounded text-center"
+                    onchange="this.form.submit()">
+                </form>
               </td>
-              <td class="p-3 text-right">Rp8.000</td>
-              <td class="p-3 text-right">Rp8.000</td>
+
+              <td class="p-3 text-right">Rp{{ number_format($item->Harga,0,',','.') }}</td>
+
+              <td class="p-3 text-right">Rp{{ number_format($item->Subtotal,0,',','.') }}</td>
+
               <td class="p-3 text-center">
-                <button class="bg-red-500 px-3 py-1 text-white rounded hover:bg-red-600">Hapus</button>
-              </td>
+  <div class="flex items-center justify-center gap-2">
+
+    <!-- MINUS BUTTON -->
+    <form action="{{ route('owner.updatepesanan', $item->Id_Detail_Cart) }}" method="POST">
+      @csrf
+      <input type="hidden" name="quantity" value="{{ max(1, $item->Quantity - 1) }}">
+      <button
+        class="w-10 h-10 flex items-center justify-center bg-red-500 text-white font-bold rounded-full hover:bg-red-600 shadow">
+        –
+      </button>
+    </form>
+
+    <!-- CURRENT QUANTITY -->
+    <span class="px-4 py-2 bg-gray-100 border rounded-lg text-lg font-semibold">
+      {{ $item->Quantity }}
+    </span>
+
+    <!-- PLUS BUTTON -->
+    <form action="{{ route('owner.updatepesanan', $item->Id_Detail_Cart) }}" method="POST">
+      @csrf
+      <input type="hidden" name="quantity" value="{{ $item->Quantity + 1 }}">
+      <button
+        class="w-10 h-10 flex items-center justify-center bg-blue-300 text-white font-bold rounded-full hover:bg-green-600 shadow">
+        +
+      </button>
+    </form>
+
+  </div>
+</td>
+
             </tr>
+            @endforeach
           </tbody>
         </table>
 
         <!-- Tombol Tambah -->
         <div class="mt-4 pt-4 border-t">
-          <a href="{{ url('/customer/order') }}"
-             class="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600">
+          <a href="{{ route('owner.addorder', ['id' => $cart->Id_Cart]) }}"
+            class="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600">
             + Tambah Pesanan
           </a>
         </div>
       </div>
 
       <!-- TOTAL + BUTTON -->
-<div class="bg-white p-6 rounded-xl shadow mb-8">
-  <div class="flex justify-between text-xl font-bold mb-4">
-    <span>Total Pembayaran</span>
-    <span class="text-blue-600">Rp48.000</span>
-  </div>
+      <div class="bg-white p-6 rounded-xl shadow mb-8">
+        <div class="flex justify-between text-xl font-bold mb-4">
+          <span>Total Pembayaran</span>
+          <span class="text-blue-600">
+            Rp{{ number_format($total,0,',','.') }}
+          </span>
+        </div>
 
-  <div class="flex justify-center gap-4"> 
-    <!-- GAP antar tombol otomatis -->
+        <div class="flex justify-center gap-4">
 
-    <a href="{{ url('/owner/transaksi') }}"
-       class="bg-red-500 text-white px-5 py-2 rounded-full hover:bg-blue-500">
-      Kembali
-    </a>
+          <a href="{{ route('owner.dashboard') }}"
+            class="bg-red-500 text-white px-5 py-2 rounded-full hover:bg-red-600">
+            Kembali
+          </a>
 
-    <a href="{{ url('/owner/transaksi') }}"
-       class="bg-blue-500 text-white px-5 py-2 rounded-full hover:bg-yellow-500">
-      Simpan
-    </a>
+          <form action="{{ route('owner.simpanpesanan', $cart->Id_Cart) }}" method="POST">
+            @csrf
+            <button class="bg-blue-500 text-white px-5 py-2 rounded-full hover:bg-blue-600">
+              Simpan
+            </button>
+          </form>
 
-  </div>
-</div>
-
+        </div>
+      </div>
 
       <footer class="py-4 text-center text-gray-600 text-sm">
         © {{ date('Y') }} Mie Pansit Gajah Siantar

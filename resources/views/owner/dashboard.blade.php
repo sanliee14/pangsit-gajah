@@ -46,21 +46,50 @@
         Dashboard Owner
       </h2>
 
+      <form method="GET" class="mb-6">
+  <div class="bg-white p-4 rounded-2xl shadow-md flex items-center gap-4 w-fit">
+    <label for="tanggal" class="font-semibold text-gray-700">Filter Tanggal:</label>
+    <input type="date" name="tanggal" id="tanggal"
+           value="{{ $tanggal ?? now()->toDateString() }}"
+           class="border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-400">
+
+    <button type="submit"
+            class="bg-blue-500 text-white px-4 py-2 rounded-xl hover:bg-blue-600 transition">
+      Terapkan
+    </button>
+  </div>
+</form>
+
+
       <!-- Statistik -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div class="bg-white rounded-3xl shadow-md p-6 text-center hover:shadow-blue-300/40 transition">
-          <h3 class="text-lg font-semibold text-gray-600">Total Penjualan Hari Ini</h3>
-          <p class="text-3xl font-bold text-blue-600 mt-2">Rp 1.530.000</p>
-        </div>
-        <div class="bg-white rounded-3xl shadow-md p-6 text-center hover:shadow-blue-300/40 transition">
-          <h3 class="text-lg font-semibold text-gray-600">Jumlah Pesanan</h3>
-          <p class="text-3xl font-bold text-green-600 mt-2">48</p>
-        </div>
-        <div class="bg-white rounded-3xl shadow-md p-6 text-center hover:shadow-blue-300/40 transition">
-          <h3 class="text-lg font-semibold text-gray-600">Total Produk</h3>
-          <p class="text-3xl font-bold text-yellow-500 mt-2">15</p>
-        </div>
-      </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+
+    <!-- Total Penjualan -->
+    <div class="bg-white rounded-3xl shadow-md p-6 text-center hover:shadow-blue-300/40 transition">
+      <h3 class="text-lg font-semibold text-gray-600">Total Penjualan</h3>
+      <p class="text-3xl font-bold text-blue-600 mt-2">
+        Rp {{ number_format($total_hari_ini, 0, ',', '.') }}
+      </p>
+    </div>
+
+    <!-- Jumlah Pesanan Masuk -->
+    <div class="bg-white rounded-3xl shadow-md p-6 text-center hover:shadow-blue-300/40 transition">
+      <h3 class="text-lg font-semibold text-gray-600">Jumlah Pesanan Masuk</h3>
+      <p class="text-3xl font-bold text-green-600 mt-2">
+        {{ $jumlah_pesanan }}
+      </p>
+    </div>
+
+    <!-- Total Produk -->
+    <div class="bg-white rounded-3xl shadow-md p-6 text-center hover:shadow-blue-300/40 transition">
+      <h3 class="text-lg font-semibold text-gray-600">Total Produk</h3>
+      <p class="text-3xl font-bold text-yellow-500 mt-2">
+        {{ $total_produk }}
+      </p>
+    </div>
+
+</div>
+
 
       <!-- Tabel Transaksi -->
       <section>
@@ -68,44 +97,64 @@
           Transaksi Terbaru
         </h3>
 
-        <div class="overflow-x-auto rounded-2xl shadow-lg border border-blue-100">
-          <table class="min-w-full bg-white rounded-lg">
-            <thead class="bg-blue-500 text-white">
-              <tr>
-                <th class="py-3 px-4 text-left">ID Transaksi</th>
-                <th class="py-3 px-4 text-left">Tanggal</th>
-                <th class="py-3 px-4 text-left">Pelanggan</th>
-                <th class="py-3 px-4 text-left">Total</th>
-                <th class="py-3 px-4 text-left">Status</th>
-                <th class="py-3 px-4 text-left">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="border-b hover:bg-blue-50">
-                <td class="py-3 px-4">TRX001</td>
-                <td class="py-3 px-4">15 Nov 2025</td>
-                <td class="py-3 px-4">Qiara</td>
-                <td class="py-3 px-4">Rp 104.000</td>
-                <td class="py-3 px-4 text-green-600 font-semibold">Lunas</td>
-                <td class="py-3 px-4">
-                  <a href="{{ route('owner.editpesanan') }}" 
-                    class="bg-yellow-400 text-white px-3 py-1 rounded-full hover:bg-yellow-500 transition">Edit</a>
-                </td>
-              </tr>
-              <tr class="border-b hover:bg-blue-50">
-                <td class="py-3 px-4">TRX002</td>
-                <td class="py-3 px-4">15 Nov 2025</td>
-                <td class="py-3 px-4">Sanny</td>
-                <td class="py-3 px-4">Rp 54.000</td>
-                <td class="py-3 px-4 text-yellow-500 font-semibold">Pending</td>
-                <td class="py-3 px-4">
-                  <a href="{{ route('owner.editpesanan') }}" 
-                    class="bg-yellow-400 text-white px-3 py-1 rounded-full hover:bg-yellow-500 transition">Edit</a>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <div class="rounded-2xl shadow-lg border border-blue-100 overflow-hidden">
+
+  <table class="min-w-full bg-white">
+    <thead class="bg-blue-500 text-white">
+      <tr>
+        <th class="py-3 px-4 text-left">ID Transaksi</th>
+        <th class="py-3 px-4 text-left">Tanggal</th>
+        <th class="py-3 px-4 text-left">Pelanggan</th>
+        <th class="py-3 px-4 text-left">Total</th>
+        <th class="py-3 px-4 text-left">Status</th>
+        <th class="py-3 px-4 text-left">Aksi</th>
+      </tr>
+    </thead>
+  </table>
+
+  <!-- BODY SCROLLABLE -->
+  <div class="max-h-[350px] overflow-y-auto">
+    <table class="min-w-full bg-white">
+      <tbody>
+        @forelse ($transaksi as $row)
+        <tr class="border-b hover:bg-blue-50">
+            <td class="py-3 px-4">#{{ $row->Id_Cart }}</td>
+
+            <td class="py-3 px-4">
+                {{ \Carbon\Carbon::parse($row->Waktu_Bayar)->format('d M Y H:i') }}
+            </td>
+
+            <td class="py-3 px-4">{{ $row->Nama }}</td>
+
+            <td class="py-3 px-4">
+                Rp {{ number_format($row->Jumlah_Bayar, 0, ',', '.') }}
+            </td>
+
+            <td class="py-3 px-4 font-semibold
+                @if($row->Status === 'selesai') text-green-600
+                @elseif($row->Status === 'diproses') text-yellow-600
+                @else text-red-600 @endif">
+                {{ ucfirst($row->Status) }}
+            </td>
+
+            <td class="py-3 px-4">
+                <a href="{{ url('/owner/editpesanan', $row->Id_Cart) }}"
+                    class="bg-yellow-400 text-white px-3 py-1 rounded-full hover:bg-yellow-500 transition">
+                    Edit
+                </a>
+            </td>
+        </tr>
+        @empty
+        <tr>
+            <td colspan="6" class="text-center py-4 text-gray-500">Belum ada transaksi.</td>
+        </tr>
+        @endforelse
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
       </section>
 
     </main>

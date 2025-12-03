@@ -30,7 +30,7 @@
       <ul class="space-y-4">
         <li><a href="{{ url('/owner/dashboard') }}" class="block py-2 px-3 rounded-full hover:bg-blue-300 hover:text-blue-900"> Dashboard</a></li>
         <li><a href="{{ url('/owner/transaksi') }}" class="block py-2 px-3 rounded-full hover:bg-blue-300 hover:text-blue-900"> Data Transaksi</a></li>
-        <li><a href="{{ url('/owner/produk') }}" class="block bg-blue-500 py-2 px-3 rounded-full font-semibold text-center shadow"> Produk & Harga</a></li>
+        <li><a href="{{ url('/owner/product') }}" class="block bg-blue-500 py-2 px-3 rounded-full font-semibold text-center shadow"> Produk & Harga</a></li>
         <li><a href="{{ url('/owner/laporan') }}" class="block py-2 px-3 rounded-full hover:bg-blue-300 hover:text-blue-900"> Laporan Harian</a></li>
         <li><a href="{{ url('/owner/tambahproduct') }}" class="block py-2 px-3 rounded-full hover:bg-blue-300 hover:text-blue-900"> Tambah Produk</a></li>
       </ul>
@@ -42,44 +42,66 @@
         Kelola Produk
       </h2>
 
-      <!-- Grid Produk (Static) -->
-      <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-
-    @foreach ($product as $p)
-    <div class="bg-white backdrop-blur-xl rounded-2xl shadow-md hover:shadow-blue-200 hover:scale-[1.02] transition p-4 text-center">
-
-        <!-- Gambar produk dari public/image -->
-        <img src="{{ asset('product/' . $p->Image) }}"
-          alt="Produk"
-          class="w-full h-36 object-cover rounded-xl mb-3">
-        </img>
-
-        <!-- Nama -->
-        <h2 class="font-semibold text-gray-800 text-base">
-            {{ $p->Nama_Product }}
-        </h2>
-
-        <!-- Harga -->
-        <p class="text-blue-600 text-sm mb-3">
-            Rp {{ number_format($p->Harga, 0, ',', '.') }}
-        </p>
-
-        <!-- Tombol -->
-        <div class="flex justify-center gap-2">
-            <a href="{{ url('/owner/editproduct/' . $p->Id_Product) }}"
-               class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded-lg text-sm font-semibold shadow">
-               Edit
-            </a>
-
-            <a href="{{ url('/owner/deleteproduct/' . $p->Id_Product) }}"
-               class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold shadow"
-               onclick="return confirm('Hapus produk ini?')">
-               Hapus
-            </a>
-        </div>
+      @if(session('success'))
+    <div class="mb-4 p-3 bg-green-200 text-green-800 rounded">
+        {{ session('success') }}
     </div>
-    @endforeach
+    @endif
+
+@if(session('error'))
+    <div class="mb-4 p-3 bg-red-200 text-red-800 rounded">
+        {{ session('error') }}
+    </div>
+@endif
+
+      <!-- Grid Produk (Static) -->
+<section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+@foreach ($product as $p)
+<div class="bg-white rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-1 
+            transition p-4 flex flex-col h-[500px]">
+
+    <!-- Foto Produk (Portrait) -->
+    <div class="w-full h-[300px] overflow-hidden rounded-xl mb-4 bg-gray-100">
+        <img src="{{ asset('product/' . $p->Image) }}"
+            class="w-full h-full object-cover object-center">
+    </div>
+
+    <!-- Nama -->
+    <h2 class="font-bold text-gray-800 text-base text-center mt-2 line-clamp-2 min-h-[48px] px-1">
+        {{ $p->Nama_Product }}
+    </h2>
+
+    <!-- Harga -->
+    <p class="text-blue-600 font-semibold text-center text-sm mb-2">
+        Rp {{ number_format($p->Harga, 0, ',', '.') }}
+    </p>
+
+    <!-- Tombol -->
+    <div class="mt-auto flex flex-col gap-2 w-full">
+
+        <!-- Edit -->
+        <a href="{{ route('owner.editproduct', $p->Id_Product) }}"
+          class="w-full bg-yellow-400 hover:bg-yellow-500 text-white py-2 rounded-lg text-sm font-semibold shadow-md flex items-center justify-center transition">
+            ✏️ Edit Produk
+        </a>
+
+        <!-- Hapus -->
+        <form action="{{ route('owner.deleteproduct', $p->Id_Product) }}" method="POST" onsubmit="return confirm('Hapus produk ini?')">
+            @csrf
+            @method('DELETE')
+            <button type="submit"
+                class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-sm font-semibold shadow-md flex items-center justify-center transition">
+                🗑️ Hapus
+            </button>
+        </form>
+
+    </div>
+</div>
+@endforeach
+
 </section>
+
     </main>
   </div>
 

@@ -10,7 +10,6 @@
 <!-- <body style="background-image: url('{{ asset('image/4.jpeg') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;" class="flex flex-col items-center justify-center min-h-screen font-sans text-gray-800"> -->
 <body class="bg-white flex flex-col items-center justify-center min-h-screen font-sans text-gray-800">
 
-    <!-- Kotak transparan blur -->
     <div class="bg-blue-300 border border-white/30 rounded-3xl shadow-2xl p-8 w-90 text-center">
         <div class="flex justify-center mb-4">
             <div class="relative w-20 h-20">
@@ -30,7 +29,7 @@
     @endif
 
 
-        <form action="{{ url('/customer/order') }}" method="POST" class="space-y-4">
+        <form action="{{ route('customer.order') }}" method="POST" class="space-y-4">
             @csrf
             <input type="text" name="nama" placeholder="Nama Anda"
                 class="w-full px-4 py-3 rounded-xl bg-white/30 text-black placeholder-gray focus:outline-none focus:ring-2 focus:ring-blue-300">
