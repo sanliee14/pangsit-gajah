@@ -9,21 +9,26 @@
 <body class="bg-blue-100 font-sans text-gray-800 min-h-screen">
 
 <!-- HEADER -->
-<header class="bg-blue-500 text-white flex justify-between items-center px-6 py-3 shadow-md sticky top-0 z-50">
-    <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/70 shadow">
-            <img src="{{ asset('image/fix.png') }}" class="w-full h-full object-cover">
-        </div>
-        <h1 class="text-lg font-bold uppercase tracking-wide">Mie Pansit Gajah Siantar</h1>
+<header class="bg-blue-500 text-white py-4 px-6 shadow-md flex items-center gap-4">
+    <div class="w-12 h-12 rounded-full overflow-hidden ring-2 ring-white/70 shadow">
+        <img src="{{ asset('image/fix.png') }}" 
+            alt="Logo" 
+            class="w-full h-full object-cover">
+    </div>
+        <div>
+        <h1 class="text-xl font-bold uppercase tracking-wide">Mie Pansit Gajah Siantar</h1>
     </div>
     <div class="hidden md:flex items-center bg-blue-200 backdrop-blur-lg px-4 py-2 rounded-full shadow-md w-64">
         <i class="fas fa-search text-white/90 mr-2 text-lg"></i>
         <input type="text" placeholder="Cari menu…" class="bg-transparent placeholder-white/80 text-white focus:outline-none w-full text-sm">
     </div>
+    <a href="{{ url('/kasir/login') }}" class="ml-auto bg-yellow-400 text-blue-900 font-semibold px-4 py-2 rounded-full shadow-md hover:bg-yellow-500 transition">
+    Logout
+    </a>
 </header>
 
 <!-- SIDEBAR -->
-<aside class="fixed top-0 left-0 h-full w-32 bg-blue-500 shadow-lg flex flex-col items-center py-6 gap-6 z-40">
+<aside class="fixed top-10 left-0 h-full w-32 bg-blue-500 shadow-lg flex flex-col items-center py-6 gap-6 z-40">
 
     <!-- Dashboard -->
     <div class="flex flex-col items-center gap-2">
